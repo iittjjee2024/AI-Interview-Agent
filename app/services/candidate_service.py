@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 from app.core.logging import get_logger
-from app.domain.models import CandidateProfile, Curriculum
+from app.domain.models import CandidateProfile, Curriculum, MissionAttempt
 
 logger = get_logger(__name__)
 
@@ -91,16 +91,65 @@ class CandidateService:
         self._path = candidates_path
 
     async def load(self) -> None:
-        """Load candidates from JSON file."""
-        path = Path(self._path)
-        if not path.exists():
-            raise FileNotFoundError(f"Candidates file not found: {self._path}")
+        """Load candidates from JSON file. Handles multiple formats."""
+        from pathlib import Path as P
+
+        # Find the candidates file
+        base = P(__file__).parent.parent.parent  # project root
+        path = None
+        for p in [
+            base / "candidates.json",
+            P("candidates.json"),
+            P(self._path),
+            base / self._path,
+        ]:
+            if p.exists():
+                path = p
+                break
+
+        if not path:
+            logger.warning("candidates_file_not_found", path=self._path)
+            return
 
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         for candidate_data in data.get("candidates", []):
-            profile = CandidateProfile.model_validate(candidate_data)
+            # Handle real format: {member: {id, name, ...}, missions: [...], signals: {...}}
+            if "member" in candidate_data:
+                member = candidate_data.get("member", {})
+                missions = candidate_data.get("missions", [])
+                signals = candidate_data.get("signals", {})
+                profile = CandidateProfile(
+                    candidate_id=member.get("id", ""),
+                    name=member.get("name", ""),
+                    completed_missions=[
+                        MissionAttempt(
+                            day=m.get("day", 0),
+                            mission=m.get("title", ""),
+                            status="completed" if m.get("passed") else ("skipped" if m.get("skipped") else "failed"),
+                            score=round(1.0 / max(m.get("attempts", 1), 1), 2) if m.get("passed") else 0.0,
+                            attempts=m.get("attempts", 1),
+                        )
+                        for m in missions
+                    ],
+                    skipped_topics=[m.get("day") for m in missions if m.get("skipped")],
+                    learning_signals=[],
+                    performance={
+                        "commit_days": round(signals.get("commitDays", 0) / 31.0, 2),
+                        "missions_completed": round(signals.get("missionsCompleted", 0) / 31.0, 2),
+                        "first_try_rate": round(signals.get("missionsFirstTry", 0) / max(signals.get("missionsCompleted", 1), 1), 2),
+                    },
+                    projects=[m.get("title") for m in missions if m.get("passed")],
+                    tools_used=[],
+                )
+            else:
+                # Handle dev format: {candidate_id, name, completed_missions, ...}
+                try:
+                    profile = CandidateProfile.model_validate(candidate_data)
+                except Exception:
+                    continue
+
             self._candidates[profile.candidate_id] = profile
 
         logger.info("candidates_loaded", count=len(self._candidates))

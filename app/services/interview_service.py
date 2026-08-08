@@ -208,6 +208,19 @@ class InterviewService:
         # Load context
         curriculum = await self._curriculum.get_curriculum()
         profile = await self._candidates.get_candidate(session.candidate_id)
+        if not profile:
+            # Candidate not in CandidateService — rebuild from session memory
+            from app.domain.models import CandidateProfile
+            profile = CandidateProfile(
+                candidate_id=session.candidate_id,
+                name=session.memory.candidate_summary.split(".")[0].replace("Candidate: ", ""),
+                completed_missions=[],
+                skipped_topics=[],
+                learning_signals=[],
+                performance={},
+                projects=session.memory.projects_mentioned,
+                tools_used=[],
+            )
         analysis = CandidateAnalysis(profile, curriculum)
 
         # Get current question
