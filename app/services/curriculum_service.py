@@ -22,14 +22,41 @@ class CurriculumService:
         if self._curriculum is not None:
             return self._curriculum
 
-        path = Path(self._path)
-        if not path.exists():
+        # Try multiple paths
+        from pathlib import Path as P
+        path = None
+        base = P(__file__).parent.parent.parent  # project root
+        for p in [P(self._path), base / self._path, P("curriculum.json"), base / "curriculum.json"]:
+            if p.exists():
+                path = p
+                break
+
+        if not path:
             raise FileNotFoundError(f"Curriculum file not found: {self._path}")
 
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        days = [CurriculumDay.model_validate(d) for d in data.get("days", [])]
+        # Normalize: handle both formats (real hackathon vs dev format)
+        days = []
+        for d in data.get("days", []):
+            # Real format: {day, title, type, tools, objectives}
+            # Dev format: {day, module, topic, concepts, learning_objectives, tools, ...}
+            normalized = {
+                "day": d.get("day", 0),
+                "module": d.get("module", d.get("type", "")),
+                "topic": d.get("topic", d.get("title", "")),
+                "subtopics": d.get("subtopics", []),
+                "learning_objectives": d.get("learning_objectives", d.get("objectives", [])),
+                "concepts": d.get("concepts", [d.get("title", "")] if d.get("title") else []),
+                "tools": d.get("tools", []),
+                "projects": d.get("projects", []),
+                "difficulty": d.get("difficulty", "intermediate"),
+                "prerequisites": d.get("prerequisites", []),
+                "expected_skills": d.get("expected_skills", d.get("objectives", [])[:2]),
+            }
+            days.append(CurriculumDay.model_validate(normalized))
+
         self._curriculum = Curriculum(days=days)
         logger.info("curriculum_loaded", days=len(days))
         return self._curriculum

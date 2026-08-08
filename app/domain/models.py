@@ -23,8 +23,8 @@ from app.domain.enums import (
 class CurriculumDay(BaseModel):
     """Represents a single day in the curriculum."""
     day: int
-    module: str
-    topic: str
+    module: str = ""
+    topic: str = ""
     subtopics: list[str] = Field(default_factory=list)
     learning_objectives: list[str] = Field(default_factory=list)
     concepts: list[str] = Field(default_factory=list)
