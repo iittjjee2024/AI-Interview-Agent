@@ -1,9 +1,12 @@
 """AI Interview Agent — FastAPI application entry point."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from app.api.routes import health, interview
 from app.core.config import get_settings
@@ -44,9 +47,22 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Routes
+    # API Routes
     app.include_router(health.router)
     app.include_router(interview.router)
+
+    # Serve frontend static files (built React app)
+    static_dir = Path(__file__).parent.parent / "frontend" / "dist"
+    if static_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
+
+        @app.get("/{full_path:path}")
+        async def serve_frontend(full_path: str):
+            """Serve React frontend for any non-API route."""
+            file_path = static_dir / full_path
+            if file_path.exists() and file_path.is_file():
+                return FileResponse(str(file_path))
+            return FileResponse(str(static_dir / "index.html"))
 
     return app
 

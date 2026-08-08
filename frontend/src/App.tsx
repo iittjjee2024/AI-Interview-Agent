@@ -48,7 +48,7 @@ function App() {
           <>
             <ProgressBar
               turn={interview.turn}
-              daysCovered={interview.daysCovered}
+              daysCovered={interview.turn}
               maxQuestions={15}
             />
             <ChatWindow
