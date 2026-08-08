@@ -100,18 +100,31 @@ class InterviewService:
         if candidate_data:
             # Build profile from the request payload directly
             from app.domain.models import CandidateProfile, MissionAttempt, LearningSignal
+            missions_raw = candidate_data.get("completed_missions", [])
+            signals_raw = candidate_data.get("learning_signals", [])
             profile = CandidateProfile(
                 candidate_id=candidate_data.get("candidate_id", candidate_id),
                 name=candidate_data.get("name", ""),
                 completed_missions=[
-                    MissionAttempt.model_validate(m)
-                    for m in candidate_data.get("completed_missions", [])
-                ],
+                    MissionAttempt(
+                        day=m.get("day", 0),
+                        mission=m.get("mission", ""),
+                        status=m.get("status", "completed"),
+                        score=m.get("score"),
+                        attempts=m.get("attempts", 1),
+                    )
+                    for m in missions_raw
+                ] if missions_raw else [],
                 skipped_topics=candidate_data.get("skipped_topics", []),
                 learning_signals=[
-                    LearningSignal.model_validate(s)
-                    for s in candidate_data.get("learning_signals", [])
-                ],
+                    LearningSignal(
+                        concept=s.get("concept", ""),
+                        signal_type=s.get("signal_type", ""),
+                        evidence=s.get("evidence", ""),
+                        day=s.get("day", 0),
+                    )
+                    for s in signals_raw
+                ] if signals_raw else [],
                 performance=candidate_data.get("performance", {}),
                 projects=candidate_data.get("projects", []),
                 tools_used=candidate_data.get("tools_used", []),

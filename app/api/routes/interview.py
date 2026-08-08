@@ -51,12 +51,17 @@ async def interview_endpoint(request: InterviewRequest):
     try:
         # Case 1: Start interview (candidate object present)
         if request.candidate is not None:
-            candidate_id = request.candidate.get("candidate_id", request.candidate.get("id", request.sessionId))
+            candidate_id = request.candidate.get(
+                "candidate_id", request.candidate.get("id", request.sessionId)
+            )
 
-            # Load full candidate data from candidates.json if only ID provided
-            candidate_data = request.candidate
-            if len(request.candidate) <= 2:  # Only id/candidate_id sent
-                candidate_data = _load_candidate_by_id(candidate_id)
+            # Always load full candidate from candidates.json
+            candidate_data = _load_candidate_by_id(candidate_id)
+            if not candidate_data or candidate_data.get("name") == "":
+                # Fallback: use whatever was sent in the request
+                candidate_data = request.candidate
+                candidate_data.setdefault("candidate_id", candidate_id)
+                candidate_data.setdefault("name", candidate_id)
 
             result = await service.start_interview(
                 candidate_id=candidate_id,
@@ -121,12 +126,21 @@ def _load_candidate_by_id(candidate_id: str) -> dict:
     import json
     from pathlib import Path
 
-    candidates_path = Path("candidates.json")
-    if not candidates_path.exists():
-        candidates_path = Path("data/candidates.json")
+    # Search multiple paths (local dev + Docker)
+    base = Path(__file__).parent.parent.parent.parent  # project root
+    candidates_path = None
+    for p in [
+        base / "candidates.json",
+        Path("candidates.json"),
+        Path("data/candidates.json"),
+        base / "data" / "candidates.json",
+    ]:
+        if p.exists():
+            candidates_path = p
+            break
 
-    if not candidates_path.exists():
-        return {"candidate_id": candidate_id}
+    if not candidates_path:
+        return {"candidate_id": candidate_id, "name": "", "completed_missions": [], "skipped_topics": [], "learning_signals": [], "performance": {}, "projects": [], "tools_used": []}
 
     with open(candidates_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -134,7 +148,6 @@ def _load_candidate_by_id(candidate_id: str) -> dict:
     for c in data.get("candidates", []):
         member = c.get("member", {})
         if member.get("id") == candidate_id:
-            # Transform to the format our service expects
             missions = c.get("missions", [])
             signals = c.get("signals", {})
             return {
@@ -145,7 +158,7 @@ def _load_candidate_by_id(candidate_id: str) -> dict:
                         "day": m.get("day", 0),
                         "mission": m.get("title", ""),
                         "status": "completed" if m.get("passed") else ("skipped" if m.get("skipped") else "failed"),
-                        "score": 1.0 / m.get("attempts", 1) if m.get("passed") else 0.0,
+                        "score": round(1.0 / max(m.get("attempts", 1), 1), 2) if m.get("passed") else 0.0,
                         "attempts": m.get("attempts", 1),
                     }
                     for m in missions
@@ -153,12 +166,13 @@ def _load_candidate_by_id(candidate_id: str) -> dict:
                 "skipped_topics": [m.get("day") for m in missions if m.get("skipped")],
                 "learning_signals": [],
                 "performance": {
-                    "commit_days": signals.get("commitDays", 0) / 31.0,
-                    "missions_completed": signals.get("missionsCompleted", 0) / 31.0,
-                    "first_try_rate": signals.get("missionsFirstTry", 0) / max(signals.get("missionsCompleted", 1), 1),
+                    "commit_days": round(signals.get("commitDays", 0) / 31.0, 2),
+                    "missions_completed": round(signals.get("missionsCompleted", 0) / 31.0, 2),
+                    "first_try_rate": round(signals.get("missionsFirstTry", 0) / max(signals.get("missionsCompleted", 1), 1), 2),
                 },
                 "projects": [m.get("title") for m in missions if m.get("passed")],
                 "tools_used": [],
             }
 
-    return {"candidate_id": candidate_id}
+    # Not found — return minimal valid structure
+    return {"candidate_id": candidate_id, "name": candidate_id, "completed_missions": [], "skipped_topics": [], "learning_signals": [], "performance": {}, "projects": [], "tools_used": []}
