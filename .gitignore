@@ -13,4 +13,3 @@ htmlcov/
 *.log
 .DS_Store
 .kiro/
-prompts.md
