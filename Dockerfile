@@ -21,6 +21,8 @@ WORKDIR /app
 COPY --from=backend-builder /install /usr/local
 COPY app/ ./app/
 COPY data/ ./data/
+COPY candidates.json ./candidates.json
+COPY curriculum.json ./curriculum.json
 COPY --from=frontend-builder /frontend/dist ./frontend/dist/
 
 RUN chown -R appuser:appuser /app

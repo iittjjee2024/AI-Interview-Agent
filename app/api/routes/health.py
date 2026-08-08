@@ -25,12 +25,20 @@ async def get_candidates():
     import json
     from pathlib import Path
 
-    # Try the root candidates.json first (actual hackathon data)
-    candidates_path = Path("candidates.json")
-    if not candidates_path.exists():
-        candidates_path = Path("data/candidates.json")
+    # Try multiple paths (handles both local dev and Docker)
+    base = Path(__file__).parent.parent.parent.parent  # project root
+    candidates_path = None
+    for p in [
+        base / "candidates.json",
+        Path("candidates.json"),
+        Path("data/candidates.json"),
+        base / "data" / "candidates.json",
+    ]:
+        if p.exists():
+            candidates_path = p
+            break
 
-    if not candidates_path.exists():
+    if not candidates_path:
         return {"candidates": []}
 
     with open(candidates_path, "r", encoding="utf-8") as f:
