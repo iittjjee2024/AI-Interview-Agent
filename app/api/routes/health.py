@@ -17,3 +17,9 @@ async def health_check():
         version="1.0.0",
         timestamp=datetime.now(timezone.utc),
     )
+
+
+@router.get("/")
+async def root():
+    """Root endpoint for platform health checks."""
+    return {"status": "healthy", "service": "ai-interview-agent"}
