@@ -119,3 +119,32 @@ These are the actual prompts and thought process used throughout development —
 
 ### Prompt 30 — Final deployment checklist
 "Before shipping I verify: 17 unit tests pass, API matches the technical spec (single POST /api/interview), candidate profiles load from both stored JSON and request payload, feedback returns summary/strengths/gaps/next arrays, prompt injection gets silently ignored, and the whole thing runs in Docker."
+
+
+---
+
+## STAGE 8: PRODUCTION ERRORS & FIXES (Post-Deployment)
+
+### Prompt 31 — Render health check returning 404
+"Deployed to Render but the health check was hitting GET / and getting 404. I had /health but not /. Fixed by either adding a root route or letting the frontend handle it. Then realized the root route was conflicting with the frontend SPA — removed it and let the catch-all serve index.html at /."
+
+### Prompt 32 — Frontend showing 'Unknown' candidates with 0 missions
+"The frontend loaded but showed 3 'Unknown' entries with 0y exp. The problem: the Dockerfile only copied data/candidates.json (old dev format with 3 fake candidates), not the root candidates.json (real 20-candidate hackathon data). Fixed by adding COPY candidates.json to Dockerfile and fixing the path resolution to search multiple locations."
+
+### Prompt 33 — NoneType has no attribute 'completed_missions'
+"This was the nastiest bug. Interview would START fine but crash on the second request. The CandidateService was loading from data/candidates.json (old format, keys like candidate_001) but the session stored candidate_id as CAND-001. When submit_answer called get_candidate('CAND-001'), it returned None. The fix: rewrote CandidateService.load() to find the real candidates.json and parse the {member, missions, signals} format."
+
+### Prompt 34 — Curriculum validation failing with 'module field required'
+"The CurriculumDay Pydantic model had module and topic as required fields. But the real curriculum.json uses 'title' and 'type' instead. Pydantic threw a validation error during load. Fixed by making module/topic optional with defaults, and normalizing the data on load — mapping title→topic, type→module, objectives→learning_objectives."
+
+### Prompt 35 — Two different data formats, one codebase
+"The hackathon gave us candidates.json and curriculum.json in their own format. I had built the system against a different format during development. Rather than rewrite everything, I added a normalization layer in both services that detects which format it's reading and transforms it to the internal schema. Now it works with either."
+
+### Prompt 36 — Docker path resolution mismatch
+"Locally, Path('candidates.json') resolves fine because CWD is the project root. In Docker, the working dir is /app but the file is at /app/candidates.json — same thing. BUT the issue was that Path(__file__).parent.parent led to different locations depending on module depth. Fixed by trying multiple path strategies: __file__ relative, CWD-relative, and hardcoded data/ fallback."
+
+### Prompt 37 — Frontend proxy ECONNREFUSED
+"Frontend on port 5173 was proxying to localhost:8000 but backend wasn't running. The Vite proxy just throws ECONNREFUSED with no helpful message. The solution for production: don't use a proxy at all — build the React app and serve it directly from FastAPI using StaticFiles + a catch-all route. One server, one port, no proxy issues."
+
+### Prompt 38 — Render deploying stale builds
+"I pushed a fix but Render kept showing the old error. Turns out Render caches Docker layers aggressively. The fix was already in the repo — I just had to wait for the full rebuild to complete. Lesson: check the Render deploy logs to confirm your commit SHA matches what's being built."
