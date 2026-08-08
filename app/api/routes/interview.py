@@ -51,11 +51,17 @@ async def interview_endpoint(request: InterviewRequest):
     try:
         # Case 1: Start interview (candidate object present)
         if request.candidate is not None:
-            candidate_id = request.candidate.get("candidate_id", request.sessionId)
+            candidate_id = request.candidate.get("candidate_id", request.candidate.get("id", request.sessionId))
+
+            # Load full candidate data from candidates.json if only ID provided
+            candidate_data = request.candidate
+            if len(request.candidate) <= 2:  # Only id/candidate_id sent
+                candidate_data = _load_candidate_by_id(candidate_id)
+
             result = await service.start_interview(
                 candidate_id=candidate_id,
                 session_id=request.sessionId,
-                candidate_data=request.candidate,
+                candidate_data=candidate_data,
             )
             return InterviewResponse(
                 reply=result["message"],
@@ -108,3 +114,51 @@ async def interview_endpoint(request: InterviewRequest):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def _load_candidate_by_id(candidate_id: str) -> dict:
+    """Load full candidate data from candidates.json by ID."""
+    import json
+    from pathlib import Path
+
+    candidates_path = Path("candidates.json")
+    if not candidates_path.exists():
+        candidates_path = Path("data/candidates.json")
+
+    if not candidates_path.exists():
+        return {"candidate_id": candidate_id}
+
+    with open(candidates_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    for c in data.get("candidates", []):
+        member = c.get("member", {})
+        if member.get("id") == candidate_id:
+            # Transform to the format our service expects
+            missions = c.get("missions", [])
+            signals = c.get("signals", {})
+            return {
+                "candidate_id": member.get("id"),
+                "name": member.get("name", ""),
+                "completed_missions": [
+                    {
+                        "day": m.get("day", 0),
+                        "mission": m.get("title", ""),
+                        "status": "completed" if m.get("passed") else ("skipped" if m.get("skipped") else "failed"),
+                        "score": 1.0 / m.get("attempts", 1) if m.get("passed") else 0.0,
+                        "attempts": m.get("attempts", 1),
+                    }
+                    for m in missions
+                ],
+                "skipped_topics": [m.get("day") for m in missions if m.get("skipped")],
+                "learning_signals": [],
+                "performance": {
+                    "commit_days": signals.get("commitDays", 0) / 31.0,
+                    "missions_completed": signals.get("missionsCompleted", 0) / 31.0,
+                    "first_try_rate": signals.get("missionsFirstTry", 0) / max(signals.get("missionsCompleted", 1), 1),
+                },
+                "projects": [m.get("title") for m in missions if m.get("passed")],
+                "tools_used": [],
+            }
+
+    return {"candidate_id": candidate_id}
