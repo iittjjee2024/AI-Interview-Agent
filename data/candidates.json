@@ -1,0 +1,115 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "candidate_001",
+      "name": "Alex Chen",
+      "completed_missions": [
+        {"day": 1, "mission": "AI landscape analysis", "status": "completed", "score": 0.9, "attempts": 1},
+        {"day": 2, "mission": "Prompt engineering workshop", "status": "completed", "score": 0.85, "attempts": 1},
+        {"day": 3, "mission": "Structured output pipeline", "status": "completed", "score": 0.78, "attempts": 2},
+        {"day": 4, "mission": "Semantic search prototype", "status": "completed", "score": 0.92, "attempts": 1},
+        {"day": 5, "mission": "Vector database setup", "status": "completed", "score": 0.88, "attempts": 1},
+        {"day": 6, "mission": "Document processing pipeline", "status": "completed", "score": 0.82, "attempts": 1},
+        {"day": 7, "mission": "Basic RAG system", "status": "completed", "score": 0.95, "attempts": 1},
+        {"day": 8, "mission": "Advanced RAG pipeline", "status": "completed", "score": 0.88, "attempts": 2},
+        {"day": 9, "mission": "RAG evaluation framework", "status": "completed", "score": 0.75, "attempts": 2},
+        {"day": 10, "mission": "Basic ReAct agent", "status": "completed", "score": 0.80, "attempts": 1},
+        {"day": 11, "mission": "Multi-step research agent", "status": "completed", "score": 0.72, "attempts": 3},
+        {"day": 12, "mission": "Multi-agent research system", "status": "completed", "score": 0.70, "attempts": 2},
+        {"day": 17, "mission": "Architecture design document", "status": "completed", "score": 0.65, "attempts": 2},
+        {"day": 18, "mission": "Deployment pipeline", "status": "partial", "score": 0.55, "attempts": 3}
+      ],
+      "skipped_topics": [14, 15, 16],
+      "learning_signals": [
+        {"concept": "RAG", "signal_type": "strong", "evidence": "Built complete pipeline with evaluation", "day": 7},
+        {"concept": "Embeddings", "signal_type": "strong", "evidence": "High score on semantic search", "day": 4},
+        {"concept": "Vector databases", "signal_type": "strong", "evidence": "Configured and optimized queries", "day": 5},
+        {"concept": "Agent memory", "signal_type": "weak", "evidence": "Multiple attempts needed", "day": 11},
+        {"concept": "Deployment", "signal_type": "weak", "evidence": "Partial completion, multiple attempts", "day": 18},
+        {"concept": "Multi-agent systems", "signal_type": "improving", "evidence": "Completed after multiple tries", "day": 12}
+      ],
+      "performance": {
+        "retrieval": 0.88,
+        "prompt_engineering": 0.85,
+        "agents": 0.74,
+        "deployment": 0.55,
+        "system_design": 0.65
+      },
+      "projects": ["RAG system for documentation", "Multi-agent research assistant"],
+      "tools_used": ["LangChain", "ChromaDB", "OpenAI", "FastAPI", "Docker"]
+    },
+    {
+      "candidate_id": "candidate_002",
+      "name": "Sarah Johnson",
+      "completed_missions": [
+        {"day": 1, "mission": "AI landscape analysis", "status": "completed", "score": 0.95, "attempts": 1},
+        {"day": 2, "mission": "Prompt engineering workshop", "status": "completed", "score": 0.92, "attempts": 1},
+        {"day": 3, "mission": "Structured output pipeline", "status": "completed", "score": 0.90, "attempts": 1},
+        {"day": 4, "mission": "Semantic search prototype", "status": "completed", "score": 0.95, "attempts": 1},
+        {"day": 5, "mission": "Vector database setup", "status": "completed", "score": 0.93, "attempts": 1},
+        {"day": 6, "mission": "Document processing pipeline", "status": "completed", "score": 0.90, "attempts": 1},
+        {"day": 7, "mission": "Basic RAG system", "status": "completed", "score": 0.97, "attempts": 1},
+        {"day": 8, "mission": "Advanced RAG pipeline", "status": "completed", "score": 0.94, "attempts": 1},
+        {"day": 9, "mission": "RAG evaluation framework", "status": "completed", "score": 0.91, "attempts": 1},
+        {"day": 10, "mission": "Basic ReAct agent", "status": "completed", "score": 0.93, "attempts": 1},
+        {"day": 11, "mission": "Multi-step research agent", "status": "completed", "score": 0.90, "attempts": 1},
+        {"day": 12, "mission": "Multi-agent research system", "status": "completed", "score": 0.88, "attempts": 1},
+        {"day": 13, "mission": "Custom tool library", "status": "completed", "score": 0.91, "attempts": 1},
+        {"day": 14, "mission": "Basic MCP server", "status": "completed", "score": 0.89, "attempts": 1},
+        {"day": 15, "mission": "Production MCP server", "status": "completed", "score": 0.85, "attempts": 2},
+        {"day": 17, "mission": "Architecture design document", "status": "completed", "score": 0.92, "attempts": 1},
+        {"day": 18, "mission": "Deployment pipeline", "status": "completed", "score": 0.88, "attempts": 1},
+        {"day": 19, "mission": "Observability setup", "status": "completed", "score": 0.86, "attempts": 1},
+        {"day": 20, "mission": "Cost optimization framework", "status": "completed", "score": 0.84, "attempts": 1},
+        {"day": 21, "mission": "Security hardening", "status": "completed", "score": 0.90, "attempts": 1}
+      ],
+      "skipped_topics": [],
+      "learning_signals": [
+        {"concept": "RAG", "signal_type": "strong", "evidence": "Perfect scores across RAG modules", "day": 7},
+        {"concept": "System design", "signal_type": "strong", "evidence": "High architecture scores", "day": 17},
+        {"concept": "Security", "signal_type": "strong", "evidence": "Strong security implementation", "day": 21},
+        {"concept": "Agents", "signal_type": "strong", "evidence": "Consistent high performance", "day": 12},
+        {"concept": "Production", "signal_type": "strong", "evidence": "Complete deployment pipeline", "day": 18}
+      ],
+      "performance": {
+        "retrieval": 0.94,
+        "prompt_engineering": 0.92,
+        "agents": 0.90,
+        "deployment": 0.88,
+        "system_design": 0.92,
+        "security": 0.90
+      },
+      "projects": ["Full RAG platform", "Multi-agent orchestration system", "Production AI pipeline"],
+      "tools_used": ["LangChain", "LangGraph", "Pinecone", "OpenAI", "FastAPI", "Docker", "Kubernetes", "Prometheus"]
+    },
+    {
+      "candidate_id": "candidate_003",
+      "name": "Mike Davis",
+      "completed_missions": [
+        {"day": 1, "mission": "AI landscape analysis", "status": "completed", "score": 0.70, "attempts": 2},
+        {"day": 2, "mission": "Prompt engineering workshop", "status": "completed", "score": 0.65, "attempts": 2},
+        {"day": 4, "mission": "Semantic search prototype", "status": "completed", "score": 0.60, "attempts": 3},
+        {"day": 5, "mission": "Vector database setup", "status": "partial", "score": 0.50, "attempts": 3},
+        {"day": 7, "mission": "Basic RAG system", "status": "completed", "score": 0.62, "attempts": 3},
+        {"day": 10, "mission": "Basic ReAct agent", "status": "partial", "score": 0.45, "attempts": 3}
+      ],
+      "skipped_topics": [3, 6, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+      "learning_signals": [
+        {"concept": "AI engineering", "signal_type": "improving", "evidence": "Gradual improvement over early days", "day": 1},
+        {"concept": "Prompt engineering", "signal_type": "weak", "evidence": "Multiple attempts, low scores", "day": 2},
+        {"concept": "RAG", "signal_type": "confused", "evidence": "Completed but with many struggles", "day": 7},
+        {"concept": "Agents", "signal_type": "confused", "evidence": "Partial completion only", "day": 10},
+        {"concept": "Vector databases", "signal_type": "weak", "evidence": "Partial completion", "day": 5}
+      ],
+      "performance": {
+        "retrieval": 0.55,
+        "prompt_engineering": 0.60,
+        "agents": 0.45,
+        "deployment": 0.0,
+        "system_design": 0.0
+      },
+      "projects": ["Basic RAG chatbot"],
+      "tools_used": ["LangChain", "ChromaDB", "OpenAI"]
+    }
+  ]
+}

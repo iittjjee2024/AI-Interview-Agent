@@ -1,0 +1,19 @@
+[project]
+name = "ai-interview-agent"
+version = "1.0.0"
+description = "Production-grade AI Interview Agent for 31-day AI Engineering Cohort"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
