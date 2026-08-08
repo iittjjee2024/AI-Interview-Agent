@@ -3,10 +3,10 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from app.api.routes import health, interview
 from app.core.config import get_settings
@@ -14,12 +14,14 @@ from app.core.logging import setup_logging
 from app.services.candidate_service import CandidateService
 from app.services.curriculum_service import CurriculumService
 
+# Resolve frontend dist directory
+STATIC_DIR = Path(__file__).parent.parent / "frontend" / "dist"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifecycle management."""
     setup_logging()
-    # Pre-load curriculum and candidates
     curriculum_service = CurriculumService()
     candidate_service = CandidateService()
     await curriculum_service.load()
@@ -33,7 +35,7 @@ def create_app() -> FastAPI:
 
     app = FastAPI(
         title="AI Interview Agent",
-        description="Production-grade AI-powered technical interviewer for the 31-day AI Engineering Cohort",
+        description="Production-grade AI-powered technical interviewer",
         version="1.0.0",
         lifespan=lifespan,
     )
@@ -41,28 +43,38 @@ def create_app() -> FastAPI:
     # CORS
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins_list,
+        allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # API Routes
+    # API Routes (registered FIRST so they take priority)
     app.include_router(health.router)
     app.include_router(interview.router)
 
-    # Serve frontend static files (built React app)
-    static_dir = Path(__file__).parent.parent / "frontend" / "dist"
-    if static_dir.exists():
-        app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
+    # Serve frontend static assets if dist exists
+    if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():
+        # Mount static assets (JS, CSS, images)
+        assets_dir = STATIC_DIR / "assets"
+        if assets_dir.exists():
+            app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="static-assets")
 
+        # Catch-all: serve index.html for SPA routing
         @app.get("/{full_path:path}")
-        async def serve_frontend(full_path: str):
-            """Serve React frontend for any non-API route."""
-            file_path = static_dir / full_path
-            if file_path.exists() and file_path.is_file():
+        async def serve_spa(request: Request, full_path: str):
+            """Serve the React SPA for any non-API path."""
+            # Don't intercept API or health paths
+            if full_path.startswith("api/") or full_path in ("health", "docs", "openapi.json"):
+                return JSONResponse({"error": "Not found"}, status_code=404)
+
+            # Try serving the exact file
+            file_path = STATIC_DIR / full_path
+            if full_path and file_path.exists() and file_path.is_file():
                 return FileResponse(str(file_path))
-            return FileResponse(str(static_dir / "index.html"))
+
+            # Default: serve index.html (SPA client-side routing)
+            return FileResponse(str(STATIC_DIR / "index.html"))
 
     return app
 
